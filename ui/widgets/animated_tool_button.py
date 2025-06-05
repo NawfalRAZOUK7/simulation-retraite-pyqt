@@ -8,9 +8,14 @@ class AnimatedToolButton(QToolButton):
     def __init__(self, parent=None):
         super().__init__(parent)
         self._scale = 1.0
+
+        # ✅ Animation principale utilisée dans hover
         self.anim = QPropertyAnimation(self, b"scale", self)
         self.anim.setDuration(260)  # ms
         self.anim.setEasingCurve(QEasingCurve.InOutCubic)
+
+        # ✅ Pour compatibilité avec les tests : attribut explicite "animation"
+        self.animation = self.anim
 
         self.setStyleSheet("""
             QToolButton {
@@ -41,7 +46,6 @@ class AnimatedToolButton(QToolButton):
         super().leaveEvent(event)
 
     def paintEvent(self, event):
-        # Zoom/scale with QPainter transform
         painter = QPainter(self)
         painter.save()
         w, h = self.width(), self.height()
@@ -49,7 +53,6 @@ class AnimatedToolButton(QToolButton):
         painter.translate(w / 2, h / 2)
         painter.scale(scale, scale)
         painter.translate(-w / 2, -h / 2)
-        # Draw normally
         super().paintEvent(event)
         painter.restore()
 

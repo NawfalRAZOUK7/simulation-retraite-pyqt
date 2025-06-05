@@ -151,7 +151,11 @@ class ChartsWindow(QMainWindow):
 
         # Onglet "Réserve sur 11 ans"
         if data is not None and isinstance(data, pd.DataFrame):
-            self.tab_reserve = TabReserve(data)
+            class TabReserveWrapper(TabReserve):
+                def update_chart(self, new_data):
+                    self.update(new_data)
+
+            self.tab_reserve = TabReserveWrapper(data)
         else:
             self.tab_reserve = QWidget()
             layout1 = QVBoxLayout(self.tab_reserve)
@@ -159,7 +163,11 @@ class ChartsWindow(QMainWindow):
 
         # Onglet "Intervalles de confiance"
         if data is not None and isinstance(data, pd.DataFrame):
-            self.tab_confidence = TabConfidence(data)
+            class TabConfidenceWrapper(TabConfidence):
+                def update_chart(self, new_data):
+                    self.update(new_data)
+
+            self.tab_confidence = TabConfidenceWrapper(data)
         else:
             self.tab_confidence = QWidget()
             layout2 = QVBoxLayout(self.tab_confidence)
@@ -167,7 +175,11 @@ class ChartsWindow(QMainWindow):
 
         # Onglet "Comparaison scénarios"
         if data_scenarios is not None and isinstance(data_scenarios, dict) and len(data_scenarios) > 0:
-            self.tab_comparaison = TabComparaison(data_scenarios)
+            class TabComparaisonWrapper(TabComparaison):
+                def update_chart(self, new_dict):
+                    self.update(new_dict)
+
+            self.tab_comparaison = TabComparaisonWrapper(data_scenarios)
         else:
             self.tab_comparaison = QWidget()
             layout3 = QVBoxLayout(self.tab_comparaison)

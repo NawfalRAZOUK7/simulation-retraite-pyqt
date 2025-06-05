@@ -1,18 +1,16 @@
 # ui/theme.py
-
 from PyQt5.QtGui import QPalette, QColor
 
-# === Couleurs centralisées (modifie ici pour toute l'app) ===
-PRIMARY_COLOR     = "#2077B4"      # Bleu principal (boutons, plots)
-SECONDARY_COLOR   = "#70AD47"      # Vert (succès)
-SUCCESS_COLOR     = "#2ECC71"      # Vert succès (bonus)
-DANGER_COLOR      = "#C44D58"      # Rouge alerte
-BACKGROUND_COLOR  = "#F5F7FB"      # Fond clair
-TEXT_COLOR        = "#282C34"      # Texte foncé
-HIGHLIGHT_COLOR   = "#3A99D8"      # Hover, sélection
-ALT_ROW_COLOR     = "#E6E9F0"      # Lignes alternées
-
-DISABLED_COLOR    = "#C0C4CC"      # Texte désactivé
+# === Couleurs centralisées ===
+PRIMARY_COLOR     = "#2077B4"
+SECONDARY_COLOR   = "#70AD47"
+SUCCESS_COLOR     = "#2ECC71"
+DANGER_COLOR      = "#C44D58"
+BACKGROUND_COLOR  = "#F5F7FB"
+TEXT_COLOR        = "#282C34"
+HIGHLIGHT_COLOR   = "#3A99D8"
+ALT_ROW_COLOR     = "#E6E9F0"
+DISABLED_COLOR    = "#C0C4CC"
 
 DARK_BG           = "#282C34"
 DARK_TEXT         = "#DFE1E6"
@@ -31,12 +29,14 @@ MPL_COLORS = {
     "dark_background": DARK_BG,
 }
 
-# === Fonts (matplotlib + Qt) ===
+# === Fonts ===
 FONT_FAMILY = "Segoe UI, Arial, sans-serif"
 FONT_SIZE   = 10
 
+# === Palettes Qt ===
+
 def get_custom_palette():
-    """Palette Qt claire personnalisée."""
+    """Palette claire personnalisée."""
     palette = QPalette()
     palette.setColor(QPalette.Window, QColor(BACKGROUND_COLOR))
     palette.setColor(QPalette.WindowText, QColor(TEXT_COLOR))
@@ -55,7 +55,7 @@ def get_custom_palette():
     return palette
 
 def get_dark_palette():
-    """Palette Qt sombre personnalisée."""
+    """Palette sombre personnalisée."""
     palette = QPalette()
     palette.setColor(QPalette.Window, QColor(DARK_BG))
     palette.setColor(QPalette.WindowText, QColor(DARK_TEXT))
@@ -73,15 +73,17 @@ def get_dark_palette():
     palette.setColor(QPalette.Disabled, QPalette.Text, QColor(DARK_DISABLED))
     return palette
 
+def get_light_palette():
+    """Alias explicite pour palette claire."""
+    return get_custom_palette()
+
+# === Styles boutons et onglets ===
+
 def style_button(widget, color=PRIMARY_COLOR, dark_mode=False):
-    """
-    Applique un style bouton moderne (couleur principale, coins arrondis).
-    """
     col = DARK_HIGHLIGHT if dark_mode else color
     hover = PRIMARY_COLOR if dark_mode else HIGHLIGHT_COLOR
     pressed = SECONDARY_COLOR if not dark_mode else DANGER_COLOR
-    widget.setStyleSheet(
-        f"""
+    widget.setStyleSheet(f"""
         QPushButton {{
             background-color: {col};
             color: white;
@@ -91,7 +93,6 @@ def style_button(widget, color=PRIMARY_COLOR, dark_mode=False):
             font-weight: bold;
             font-size: 13px;
             min-width: 100px;
-            transition: background 0.2s;
         }}
         QPushButton:hover {{
             background-color: {hover};
@@ -99,17 +100,10 @@ def style_button(widget, color=PRIMARY_COLOR, dark_mode=False):
         QPushButton:pressed {{
             background-color: {pressed};
         }}
-        """
-    )
+    """)
 
 def get_tab_stylesheet(dark_mode=False):
-    """
-    Retourne la feuille de style QTabWidget selon le mode.
-    """
-    if dark_mode:
-        return DARK_TAB_STYLESHEET
-    else:
-        return TAB_STYLESHEET
+    return DARK_TAB_STYLESHEET if dark_mode else TAB_STYLESHEET
 
 TAB_STYLESHEET = f"""
 QTabBar::tab {{
@@ -161,22 +155,28 @@ QTabWidget::pane {{
 }}
 """
 
+# === Application globale du thème ===
+
 def apply_theme(app, dark_mode):
-    """
-    Applique la palette Qt et la feuille de style des onglets en fonction du mode (clair/sombre).
-    """
-    if dark_mode:
-        app.setPalette(get_dark_palette())
-        app.setStyleSheet(DARK_TAB_STYLESHEET)
-    else:
-        app.setPalette(get_custom_palette())
-        app.setStyleSheet(TAB_STYLESHEET)
+    app.setPalette(get_dark_palette() if dark_mode else get_custom_palette())
+    app.setStyleSheet(get_tab_stylesheet(dark_mode))
 
 def get_highlight_color(dark_mode=False):
-    """
-    Renvoie la couleur de survol globale (utile pour d'autres widgets).
-    """
     return DARK_HIGHLIGHT if dark_mode else HIGHLIGHT_COLOR
+
+# === Exports explicites ===
+
+__all__ = [
+    "apply_theme", "style_button", "get_tab_stylesheet", "get_highlight_color",
+    "get_custom_palette", "get_dark_palette", "get_light_palette",
+    "PRIMARY_COLOR", "SECONDARY_COLOR", "SUCCESS_COLOR", "DANGER_COLOR",
+    "BACKGROUND_COLOR", "TEXT_COLOR", "HIGHLIGHT_COLOR", "ALT_ROW_COLOR",
+    "DISABLED_COLOR", "DARK_BG", "DARK_TEXT", "MPL_COLORS"
+]
+
+# === Alias pour anciens tests ===
+dark_palette = get_dark_palette
+light_palette = get_custom_palette
 
 # === USAGE EXEMPLE (dans main.py) ===
 """

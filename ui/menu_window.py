@@ -144,7 +144,7 @@ class MenuWindow(QMainWindow):
 
         data_scenarios = {}
         for idx, scenario_id in enumerate(range(1, 5), 1):
-            sim = Simulator(scenario_id)
+            sim = Simulator(scenario_id=scenario_id)  # ✅ FIX: paramètre explicite
             runs = sim.simuler_40_runs()
             df_concat = pd.concat(runs, ignore_index=True)
             nom = f"Scénario {scenario_id} – {sim.scenario.nom}"

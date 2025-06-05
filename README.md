@@ -5,6 +5,10 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20Linux%20%7C%20Mac-lightgrey)]()
 
+![Tests](https://github.com/NawfalRAZOUK7/simulation-retraite-pyqt/actions/workflows/tests.yml/badge.svg)
+![Coverage](coverage.svg)
+
+
 **Projet Python PyQt5 – Architecture Modulaire, Expérience Utilisateur Moderne & Professionnelle**
 
 ---

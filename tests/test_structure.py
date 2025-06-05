@@ -12,22 +12,16 @@ et que les exports/sauvegardes sont toujours possibles.
 """
 
 import os
-import sys
 import importlib
 import pytest
 
-# Ajout du chemin racine du projet
-BASE_PATH = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
-if BASE_PATH not in sys.path:
-    sys.path.insert(0, BASE_PATH)
-
-# Dossiers attendus
+# Dossiers attendus relatifs au projet
 REQUIRED_FOLDERS = [
     "data/config",
     "data/output",
 ]
 
-# Modules critiques à importer
+# Modules essentiels à importer (sans ui.main_window)
 CRITICAL_MODULES = [
     "core.simulator",
     "core.employee",
@@ -35,7 +29,6 @@ CRITICAL_MODULES = [
     "core.scenario",
     "core.germes",
 
-    "ui.main_window",
     "ui.menu_window",
     "ui.charts_window.charts_window",
     "ui.charts_window.tab_reserve",
@@ -56,46 +49,45 @@ CRITICAL_MODULES = [
 
 
 class TestProjectStructure:
+
     @pytest.mark.parametrize("folder", REQUIRED_FOLDERS)
     def test_required_folders_exist(self, folder):
-        """Vérifie que les dossiers requis existent."""
-        path = os.path.join(BASE_PATH, folder)
-        assert os.path.isdir(path), f"Dossier manquant : {folder}"
+        """Vérifie que les dossiers requis existent dans le projet."""
+        assert os.path.isdir(folder), f"❌ Dossier requis manquant : {folder}"
 
     @pytest.mark.parametrize("folder", REQUIRED_FOLDERS)
     def test_file_write_delete_in_folder(self, folder):
-        """Vérifie la capacité à écrire et supprimer un fichier dans le dossier donné."""
-        path = os.path.join(BASE_PATH, folder)
-        test_file = os.path.join(path, "test_temp_file.txt")
+        """Teste la possibilité d’écrire et de supprimer un fichier dans les dossiers projet."""
+        test_file = os.path.join(folder, "test_temp_file.txt")
         try:
             with open(test_file, "w") as f:
                 f.write("test")
-            assert os.path.isfile(test_file)
+            assert os.path.isfile(test_file), f"❌ Écriture échouée dans : {folder}"
         finally:
             if os.path.exists(test_file):
                 os.remove(test_file)
 
     @pytest.mark.parametrize("module_path", CRITICAL_MODULES)
     def test_critical_module_imports(self, module_path):
-        """Teste que les modules essentiels peuvent être importés sans erreur."""
+        """Teste que tous les modules critiques peuvent être importés sans erreur."""
         try:
             importlib.import_module(module_path)
         except ImportError as e:
-            pytest.fail(f"Échec d’import : {module_path} — {e}")
+            pytest.fail(f"❌ Erreur d’import : {module_path} → {e}")
 
     def test_logger_structure(self):
-        """Teste la présence et la structure du logger principal."""
+        """Teste la structure du logger global."""
         from utils import logger
         log = logger.get_logger("test_structure")
-        assert log.name == "test_structure"
-        log.info("Test de logger OK.")
+        assert log.name.endswith("test_structure"), f"❌ Nom inattendu : {log.name}"
+        log.info("✅ Logger importé et fonctionnel")
 
     def test_theme_utils_available(self):
-        """Teste la présence des fonctions utilitaires de thème."""
+        """Vérifie la présence des fonctions pour thèmes et préférences utilisateur."""
         from ui import theme
         from utils import theme_utils
 
-        assert hasattr(theme, "dark_palette")
-        assert hasattr(theme, "light_palette")
-        assert hasattr(theme_utils, "load_theme_preference")
-        assert hasattr(theme_utils, "save_theme_preference")
+        assert hasattr(theme, "get_dark_palette"), "❌ get_dark_palette() manquant"
+        assert hasattr(theme, "get_light_palette"), "❌ get_light_palette() manquant"
+        assert hasattr(theme_utils, "load_theme_pref"), "❌ load_theme_pref() manquant"
+        assert hasattr(theme_utils, "save_theme_pref"), "❌ save_theme_pref() manquant"

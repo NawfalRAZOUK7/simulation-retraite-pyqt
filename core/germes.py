@@ -1,6 +1,6 @@
 # core/germes.py
 
-from core import logger
+from core.logger import logger # DRY: Utilisation du logger partagé
 
 def _clamp_germe(val):
     """Force le germe à rester dans [1, 30000]"""
@@ -23,7 +23,9 @@ class GermesAlea:
         self.IY = _clamp_germe(IY)
         self.IZ = _clamp_germe(IZ)
         if None in (IX, IY, IZ) or 0 in (IX, IY, IZ):
-            logger.warning("Un ou plusieurs germes étaient None ou 0 à l'initialisation : IX=%s, IY=%s, IZ=%s. Correction automatique appliquée.", IX, IY, IZ)
+            logger.warning(
+                "Un ou plusieurs germes étaient None ou 0 à l'initialisation : IX=%s, IY=%s, IZ=%s. Correction automatique appliquée.",
+                IX, IY, IZ)
         else:
             logger.info("GermesAlea initialisés : IX=%d, IY=%d, IZ=%d", self.IX, self.IY, self.IZ)
 
@@ -34,16 +36,15 @@ class GermesAlea:
         Force les germes à rester dans [1, 30000] après chaque itération.
         """
         if None in (self.IX, self.IY, self.IZ) or 0 in (self.IX, self.IY, self.IZ):
-            logger.warning("Appel à alea() avec germes invalides : IX=%s, IY=%s, IZ=%s", self.IX, self.IY, self.IZ)
-            self.IX, self.IY, self.IZ = _clamp_germe(self.IX), _clamp_germe(self.IY), _clamp_germe(self.IZ)
+            logger.warning("Appel à alea() avec germes invalides : IX=%s, IY=%s, IZ=%s",
+                           self.IX, self.IY, self.IZ)
+            self.IX, self.IY, self.IZ = map(_clamp_germe, (self.IX, self.IY, self.IZ))
             return 0.5  # Valeur neutre pour éviter le crash
 
-        # Algorithme congruentiel triple pour [0,1[
         self.IX = (171 * self.IX) % 30269
         self.IY = (172 * self.IY) % 30307
         self.IZ = (170 * self.IZ) % 30323
 
-        # Clamp des germes après calcul pour éviter tout débordement ou mauvaise valeur
         self.IX = _clamp_germe(self.IX)
         self.IY = _clamp_germe(self.IY)
         self.IZ = _clamp_germe(self.IZ)
@@ -54,27 +55,18 @@ class GermesAlea:
         return r
 
     def get_germes(self):
-        """
-        Retourne les germes courants sous forme de tuple.
-        """
+        """Retourne les germes courants sous forme de tuple."""
         return self.IX, self.IY, self.IZ
 
     def set_germes(self, IX, IY, IZ):
-        """
-        Met à jour les germes. Log l'action.
-        Clamp les germes dans [1, 30000].
-        """
+        """Met à jour les germes. Log l'action."""
         self.IX = _clamp_germe(IX)
         self.IY = _clamp_germe(IY)
         self.IZ = _clamp_germe(IZ)
         logger.info("Mise à jour des germes : IX=%d, IY=%d, IZ=%d", self.IX, self.IY, self.IZ)
 
     def next_germes(self, inc=5):
-        """
-        Incrémente chaque germe d'une valeur donnée (par défaut 5) pour diversifier les runs.
-        Log l'action.
-        Clamp les germes dans [1, 30000] après incrément.
-        """
+        """Incrémente chaque germe d'une valeur donnée (par défaut 5)."""
         self.IX = _clamp_germe(self.IX + inc)
         self.IY = _clamp_germe(self.IY + inc)
         self.IZ = _clamp_germe(self.IZ + inc)

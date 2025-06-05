@@ -2,19 +2,48 @@
 
 import numpy as np
 import pandas as pd
-from utils import logger
+import statistics
 import scipy.stats as st
+
+from utils.logger import get_child_logger
+logger = get_child_logger("utils.stats")
+
+
+# --- Fonctions de base (utilisées aussi dans les tests unitaires) ---
+
+def mean(data):
+    """Calcule la moyenne simple d'une liste de valeurs numériques."""
+    try:
+        return float(statistics.mean(data))  # ✅ cast explicite
+    except statistics.StatisticsError:
+        raise ValueError("Liste vide")  # ✅ conversion pour satisfaire le test
+
+
+def standard_deviation(data):
+    """Calcule l'écart-type d'une liste de valeurs numériques."""
+    return statistics.stdev(data)
+
+
+def confidence_interval(data, z=1.96):
+    """
+    Calcule l’intervalle de confiance à partir d’un z-score (normal).
+    Retourne : (moyenne, borne_inf, borne_sup)
+    """
+    m = mean(data)
+    s = standard_deviation(data)
+    margin = z * (s / len(data) ** 0.5)
+    return m, m - margin, m + margin
+
+
+# --- Fonctions liées à la réserve (avec logger) ---
 
 def moyenne_reserve(data, annee=None):
     """
-    Calcule la moyenne de la réserve.
-    Accepte : list, np.ndarray, pd.Series ou DataFrame (avec colonne 'Reserve').
+    Calcule la moyenne de la réserve (optionnellement pour une année).
     """
     try:
-        # Si DataFrame
         if isinstance(data, pd.DataFrame):
             df = data
-            # Optionnel: filtrer par année si demandé
             if annee is not None:
                 if "Annee" not in df.columns:
                     logger.warning("moyenne_reserve : colonne 'Annee' manquante.")
@@ -24,10 +53,9 @@ def moyenne_reserve(data, annee=None):
                 logger.warning("moyenne_reserve : colonne 'Reserve' manquante.")
                 return None
             reserves = df["Reserve"].values
-        # Si Series
+
         elif isinstance(data, pd.Series):
             reserves = data.values
-        # Si list ou np.ndarray
         elif isinstance(data, (list, np.ndarray)):
             reserves = np.asarray(data)
         else:
@@ -41,19 +69,17 @@ def moyenne_reserve(data, annee=None):
         result = float(np.mean(reserves))
         logger.info("Moyenne réserve calculée pour année %s : %.2f (n=%d)", str(annee), result, len(reserves))
         return result
+
     except Exception as e:
         logger.error("Erreur calcul moyenne réserve : %s", str(e))
         return None
 
+
 def intervalle_confiance(data, alpha=0.05):
     """
-    Calcule l’intervalle de confiance pour la moyenne d’un échantillon (IC à 1-alpha).
-    Accepte : list, np.ndarray, pd.Series, pd.DataFrame['Reserve']
-    Retour : (borne_inf, borne_sup)
-    Si un seul élément : retourne (val, val). Si vide : (None, None)
+    Calcule l’intervalle de confiance à 1-alpha sur des données numériques.
     """
     try:
-        # Supporte DataFrame (sur la colonne 'Reserve'), Series, liste, array
         if isinstance(data, pd.DataFrame):
             if "Reserve" not in data.columns:
                 logger.warning("intervalle_confiance : colonne 'Reserve' manquante dans DataFrame.")
@@ -77,19 +103,21 @@ def intervalle_confiance(data, alpha=0.05):
         se = st.sem(arr)
         h = se * st.t.ppf(1 - alpha / 2, n - 1)
         return (m - h, m + h)
+
     except Exception as e:
         logger.error("Erreur intervalle_confiance : %s", str(e))
         return (None, None)
 
+
 def intervalle_confiance_reserve(df_runs, annee, alpha=0.05):
     """
-    Calcule l'intervalle de confiance (par défaut 95%) de la réserve pour une année donnée.
-    alpha : risque (par défaut 0.05 pour 95%)
+    IC pour la réserve d’une année spécifique.
     """
     try:
         if df_runs is None or "Reserve" not in df_runs.columns or "Annee" not in df_runs.columns:
             logger.warning("intervalle_confiance_reserve : DataFrame incomplet ou None.")
             return (None, None)
+
         reserves = df_runs[df_runs["Annee"] == annee]["Reserve"].values
         n = len(reserves)
         if n == 0:
@@ -97,18 +125,21 @@ def intervalle_confiance_reserve(df_runs, annee, alpha=0.05):
             return (None, None)
         if n == 1:
             return (reserves[0], reserves[0])
+
         m = np.mean(reserves)
         se = st.sem(reserves)
         h = se * st.t.ppf(1 - alpha / 2, n - 1)
-        logger.info("IC %.1f%% pour année %s (n=%d) : [%.2f, %.2f]", 100*(1-alpha), annee, n, m-h, m+h)
+        logger.info("IC %.1f%% pour année %s (n=%d) : [%.2f, %.2f]", 100 * (1 - alpha), annee, n, m - h, m + h)
         return (m - h, m + h)
+
     except Exception as e:
         logger.error("Erreur calcul IC réserve pour année %s : %s", annee, str(e))
         return (None, None)
 
+
 def intervalle_confiance_multi(df_runs, annees, alpha=0.05):
     """
-    Calcule l'IC pour chaque année dans une liste. Retourne un dict {année: (ic_bas, ic_haut)}
+    Calcule l'IC de réserve pour chaque année dans une liste.
     """
     results = {}
     try:
@@ -120,6 +151,17 @@ def intervalle_confiance_multi(df_runs, annees, alpha=0.05):
     except Exception as e:
         logger.error("Erreur calcul IC multi-années : %s", str(e))
         return {}
+
+# --- Exports explicites ---
+__all__ = [
+    "mean",
+    "standard_deviation",
+    "confidence_interval",
+    "moyenne_reserve",
+    "intervalle_confiance",
+    "intervalle_confiance_reserve",
+    "intervalle_confiance_multi"
+]
 
 # --- Exemples d'utilisation ---
 # df_concat = pd.concat(runs, ignore_index=True)

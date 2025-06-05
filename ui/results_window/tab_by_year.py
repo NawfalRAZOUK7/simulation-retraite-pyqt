@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QTableWidget, QTableWidgetItem
 import pandas as pd
-from ui.results_window import logger
+from ui.results_window.logger import logger
 
 class TabByYear(QWidget):
     def __init__(self, data=None):

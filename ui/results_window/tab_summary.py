@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QWidget, QVBoxLayout, QLabel, QTextEdit
 import pandas as pd
-from ui.results_window import logger  # Ajout du logger
+from ui.results_window.logger import logger  # Ajout du logger
 
 class TabSummary(QWidget):
     def __init__(self, data=None):

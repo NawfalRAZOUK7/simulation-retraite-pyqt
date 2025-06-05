@@ -1,21 +1,29 @@
 # utils/__init__.py
 
-from .logger import logger, get_child_logger, set_log_level, add_file_handler
-from .charts import *
-from .csv_sort_utils import *
-from .fileio import *
-from .mpl_theme import *
-from .pdf_export import *
-from .stats import *
-from .theme_utils import *
-
-__all__ = (
-    ["logger", "get_child_logger", "set_log_level", "add_file_handler"] +
-    charts.__all__ +
-    csv_sort_utils.__all__ +
-    fileio.__all__ +
-    mpl_theme.__all__ +
-    pdf_export.__all__ +
-    stats.__all__ +
-    theme_utils.__all__
+from .logger import (
+    get_child_logger,
+    set_log_level,
+    add_file_handler,
+    close_handlers,
 )
+from . import charts
+from . import csv_sort_utils
+from . import fileio
+from . import mpl_theme
+from . import pdf_export
+from . import stats
+from . import theme_utils
+
+__all__ = [
+    "get_child_logger",
+    "set_log_level",
+    "add_file_handler",
+    "close_handlers",
+    "charts",
+    "csv_sort_utils",
+    "fileio",
+    "mpl_theme",
+    "pdf_export",
+    "stats",
+    "theme_utils",
+]

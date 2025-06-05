@@ -1,6 +1,6 @@
 from PyQt5.QtWidgets import QMainWindow, QWidget, QVBoxLayout
 from ui.results_window import TabSummary, TabByYear, TabCSVExport
-from ui.results_window import logger
+from ui.results_window.logger import logger
 
 # NEW: Import FadeTabWidget for fade-in tab transitions
 from ui.widgets.fade_tab_widget import FadeTabWidget
@@ -12,7 +12,8 @@ class ResultsWindow(QMainWindow):
         self.setGeometry(270, 270, 900, 650)
         self.data = data  # À partager avec les tabs si besoin
         self.init_ui()
-        logger.info("ResultsWindow ouverte avec données %s", "OK" if data is not None else "None")
+        if logger:
+            logger.info("ResultsWindow ouverte avec données %s", "OK" if data is not None else "None")
 
     def init_ui(self):
         central_widget = QWidget()

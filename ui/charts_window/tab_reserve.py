@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (
 from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import pandas as pd
-from ui.charts_window import logger
+from ui.charts_window.logger import logger
 from ui.dialogs import show_error, show_info
 
 # ---- Import des helpers UX avancés ----
@@ -235,4 +235,15 @@ class TabReserve(QWidget):
             f"Nombre de lignes affichées : {stats['Nb lignes']}"
         ]
         return "\n".join(lines)
+
+    def update_chart(self, data):
+        """
+        Méthode publique pour mettre à jour le graphique avec de nouvelles données.
+        Utilisée par les tests/unités ou d'autres composants.
+        """
+        if isinstance(data, pd.DataFrame):
+            self.data = data.copy()
+            self.apply_filters(initial=True)
+        else:
+            logger.warning("update_chart a reçu un type non pris en charge : %s", type(data))
 

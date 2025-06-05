@@ -6,7 +6,7 @@ from matplotlib.figure import Figure
 import numpy as np
 import pandas as pd
 from utils.stats import intervalle_confiance_reserve
-from ui.charts_window import logger
+from ui.charts_window.logger import logger
 from ui.dialogs import show_error, show_info
 from ui.widgets.plot_helpers import (
     mpl_add_tooltips, mpl_add_export_button, mpl_add_crosshair,
@@ -259,3 +259,16 @@ class TabConfidence(QWidget):
             f"Alpha (niveau de confiance): {stats['Alpha (niveau confiance)']}"
         ]
         return "\n".join(lines)
+
+    def update_chart(self, data: pd.DataFrame):
+        """
+        Méthode publique appelée par l'extérieur pour mettre à jour les données du graphique.
+        """
+        if isinstance(data, pd.DataFrame):
+            self.data = data.copy()
+            self.all_years = sorted(self.data["Annee"].unique()) if not self.data.empty else []
+            self.year_combo.clear()
+            self.year_combo.addItem("Toutes années")
+            for a in self.all_years:
+                self.year_combo.addItem(str(a))
+            self.apply_filters()

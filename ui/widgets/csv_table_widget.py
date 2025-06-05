@@ -2,8 +2,9 @@
 
 from PyQt5.QtWidgets import (
     QTableWidget, QTableWidgetItem, QAbstractItemView, QApplication,
-    QVBoxLayout, QPushButton, QWidget, QFileDialog, QHBoxLayout, QShortcut, QKeySequence
+    QVBoxLayout, QPushButton, QWidget, QFileDialog, QHBoxLayout, QShortcut
 )
+from PyQt5.QtGui import QKeySequence  # ✅ BON
 from PyQt5.QtCore import Qt
 import pandas as pd
 

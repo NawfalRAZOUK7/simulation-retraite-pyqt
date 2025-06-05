@@ -5,7 +5,7 @@ from matplotlib.backends.backend_qt5agg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
 import numpy as np
 import pandas as pd
-from ui.charts_window import logger
+from ui.charts_window.logger import logger
 from ui.dialogs import show_error, show_info
 from ui.widgets.plot_helpers import (
     mpl_add_tooltips, mpl_add_export_button, mpl_add_crosshair,
@@ -286,3 +286,19 @@ class TabComparaison(QWidget):
             total = stats["__total__"]
             lines.append(f"--- Total scénarios affichés : {total['Nombre de scénarios']}, total lignes : {total['Total lignes']:,}")
         return "\n".join(lines)
+
+    # === NEW: Requis pour tests et actualisation externe ===
+    def update_chart(self, data: dict):
+        """
+        Remplace les données de simulation avec `data` et met à jour le graphique.
+        `data` doit être un dict[str, pd.DataFrame].
+        """
+        if not isinstance(data, dict):
+            logger.error("update_chart : données invalides (attendu dict)")
+            return
+        self.data_scenarios = data
+        self.selector.update_scenarios(list(data.keys()))
+        self.active_scenarios = set(data.keys())
+        self.filtered_scenarios = {k: v.copy() for k, v in data.items()}
+        self._populate_years_combo()
+        self.apply_filters()

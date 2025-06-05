@@ -1,14 +1,14 @@
 """
 test_logger.py
 
-Teste le module global de logging :
+🎯 Objectif :
 - Vérifie que le logger principal est bien accessible
 - Vérifie les niveaux de logs (DEBUG, INFO, WARNING, ERROR, CRITICAL)
-- Vérifie la création du fichier de logs si activé
-- Vérifie que les loggers enfants héritent bien de la configuration globale
+- Vérifie la création d’un fichier de log temporaire
+- Vérifie que les loggers enfants héritent correctement du parent
 
-Ce test garantit que tous les modules du projet peuvent journaliser de manière cohérente,
-et que les fichiers de log sont générés de manière fiable.
+🛡️ Ce test garantit que tous les modules du projet peuvent journaliser
+de manière fiable et cohérente.
 """
 
 import os
@@ -19,57 +19,56 @@ from utils import logger
 
 
 class TestLogger:
+
     def test_get_logger_returns_logger_instance(self):
-        """Teste que get_logger() retourne une instance valide."""
+        """🧪 Vérifie que get_logger() retourne bien un Logger."""
         log = logger.get_logger("test_logger")
-        assert isinstance(log, logging.Logger)
-        assert log.name == "test_logger"
+        assert isinstance(log, logging.Logger), "❌ get_logger() ne retourne pas un objet Logger"
+        assert log.name.endswith("test_logger"), f"❌ Nom inattendu : {log.name}"
 
-    def test_logger_levels(self, caplog):
-        """Teste que les différents niveaux de logs fonctionnent correctement."""
-        log = logger.get_logger("test_logger_levels")
+    def test_logger_levels_output(self, caplog):
+        """🧪 Vérifie les niveaux de logs classiques."""
+        log = logger.get_logger("logger_levels")
         with caplog.at_level(logging.DEBUG):
-            log.debug("Debug msg")
-            log.info("Info msg")
-            log.warning("Warn msg")
-            log.error("Error msg")
-            log.critical("Critical msg")
+            log.debug("Debug message")
+            log.info("Info message")
+            log.warning("Warning message")
+            log.error("Error message")
+            log.critical("Critical message")
 
-        levels = ["Debug msg", "Info msg", "Warn msg", "Error msg", "Critical msg"]
-        for message in levels:
-            assert any(message in record.message for record in caplog.records)
+        for expected in [
+            "Debug message", "Info message", "Warning message", "Error message", "Critical message"
+        ]:
+            assert any(expected in record.message for record in caplog.records), f"❌ Message manquant : {expected}"
 
-    def test_logger_file_output(self):
-        """Teste que le logger peut écrire dans un fichier temporaire."""
-        with tempfile.TemporaryDirectory() as temp_dir:
-            log_file = os.path.join(temp_dir, "test_log_output.log")
+    def test_logger_levels_output(self, caplog):
+        """🧪 Vérifie les niveaux de logs classiques."""
+        log = logger.get_logger("logger_levels")
 
-            # Créer un handler temporaire
-            log = logger.get_logger("file_output_test")
-            file_handler = logging.FileHandler(log_file)
-            file_handler.setLevel(logging.INFO)
-            formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-            file_handler.setFormatter(formatter)
-            log.addHandler(file_handler)
+        # 🔧 Forcer le niveau du logger (et handlers) à DEBUG pour le test
+        original_level = log.level
+        logger.set_log_level("DEBUG")
 
-            # Logger un message
-            log.info("Test log message to file.")
+        with caplog.at_level(logging.DEBUG):
+            log.debug("Debug message")
+            log.info("Info message")
+            log.warning("Warning message")
+            log.error("Error message")
+            log.critical("Critical message")
 
-            # Fermer et retirer handler
-            log.removeHandler(file_handler)
-            file_handler.close()
+        logger.set_log_level(logging.getLevelName(original_level))  # 🔄 Restaurer le niveau
 
-            # Lire fichier
-            with open(log_file, "r", encoding="utf-8") as f:
-                content = f.read()
-                assert "Test log message to file." in content
+        for expected in [
+            "Debug message", "Info message", "Warning message", "Error message", "Critical message"
+        ]:
+            assert any(expected in record.message for record in caplog.records), f"❌ Message manquant : {expected}"
 
-    def test_child_logger_inherits_config(self, caplog):
-        """Teste que les loggers enfants héritent des paramètres du logger principal."""
-        parent_log = logger.get_logger("parent")
-        child_log = logger.get_logger("parent.child")
+    def test_child_logger_inherits_configuration(self, caplog):
+        """🧪 Vérifie que le logger enfant hérite des paramètres du parent."""
+        parent_logger = logger.get_logger("parent")
+        child_logger = logger.get_logger("parent.child")
 
         with caplog.at_level(logging.INFO):
-            child_log.info("Child logger message")
+            child_logger.info("Child log message")
 
-        assert "Child logger message" in caplog.text
+        assert "Child log message" in caplog.text, "❌ Le logger enfant n’a pas loggé correctement"

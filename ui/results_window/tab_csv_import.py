@@ -8,6 +8,7 @@ import pandas as pd
 from ui.widgets.csv_table_widget import CSVTableWidget
 from ui.widgets.sort_dialog import SortDialog
 from utils.csv_sort_utils import save_sort_config, load_sort_config
+from ui.results_window.logger import logger  # ✅ Ajout du logger
 
 class TabCSVImport(QWidget):
     CONFIG_SORT_PATH = "data/config/tab_csv_import_sort.json"
@@ -26,10 +27,8 @@ class TabCSVImport(QWidget):
     def setup_ui(self):
         layout = QVBoxLayout(self)
 
-        # Titre
         layout.addWidget(QLabel("<b>Import et manipulation du CSV (tri, copier/coller, pagination)</b>"))
 
-        # Toolbar boutons
         btn_layout = QHBoxLayout()
         self.btn_sort = QPushButton("Trier…")
         self.btn_sort.clicked.connect(self.open_sort_dialog)
@@ -49,11 +48,9 @@ class TabCSVImport(QWidget):
 
         layout.addLayout(btn_layout)
 
-        # TableWidget (aperçu DataFrame)
         self.table = CSVTableWidget()
         layout.addWidget(self.table)
 
-        # Pagination
         nav_layout = QHBoxLayout()
         self.btn_prev = QPushButton("← Précédent")
         self.btn_prev.clicked.connect(self.prev_page)
@@ -83,6 +80,7 @@ class TabCSVImport(QWidget):
         sub_df = df.iloc[start:end]
         self.table.set_dataframe(sub_df)
         self.lbl_page.setText(f"Lignes {start+1}-{end} sur {n_rows} (Page {self.current_page+1}/{(n_rows-1)//self.max_rows_per_page+1})")
+        logger.info("TabCSVImport : page %d affichée (%d lignes)", self.current_page + 1, len(sub_df))
 
     def open_sort_dialog(self):
         if self.data.empty:
@@ -97,12 +95,14 @@ class TabCSVImport(QWidget):
                 save_sort_config(self.CONFIG_SORT_PATH, self.sort_columns, self.sort_orders)
                 self.apply_sort()
                 self.refresh_table()
+                logger.info("Tri appliqué sur colonnes %s (%s)", by, asc)
 
     def reset_sort(self):
         self.sort_columns, self.sort_orders = [], []
         save_sort_config(self.CONFIG_SORT_PATH, self.sort_columns, self.sort_orders)
         self.apply_sort()
         self.refresh_table()
+        logger.info("Tri réinitialisé dans TabCSVImport")
 
     def apply_sort(self):
         if self.sort_columns:
@@ -130,3 +130,4 @@ class TabCSVImport(QWidget):
 
     def paste_selected(self):
         self.table.paste_selected()
+        logger.info("Collage de contenu dans table TabCSVImport")

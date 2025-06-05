@@ -1,23 +1,15 @@
-# ui/results_window/__init__.py
-
-from .results_window import ResultsWindow
 from .tab_summary import TabSummary
 from .tab_by_year import TabByYear
 from .tab_csv_export import TabCSVExport
 from .tab_csv_import import TabCSVImport
 
-# Optionally, expose a logger (if you use one in this subpackage)
-try:
-    from utils.logger import get_child_logger
-    logger = get_child_logger("ui.results_window")
-except ImportError:
-    logger = None
+# Optionnel : importer ResultsWindow uniquement si nécessaire, mais éviter ici pour ne pas créer de circular import
+# from .results_window import ResultsWindow  # ❌ À éviter ici pour ne pas provoquer de circular import
 
 __all__ = [
-    "ResultsWindow",
     "TabSummary",
     "TabByYear",
     "TabCSVExport",
-    "TabCSVImport",
-    "logger"
+    "TabCSVImport"
+    # "ResultsWindow"  # ❌ NE PAS inclure ici si tu ne fais pas l'import réel ci-dessus
 ]

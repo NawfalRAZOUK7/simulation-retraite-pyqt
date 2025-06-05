@@ -1,5 +1,7 @@
 # core/scenario.py
 
+from core.logger import logger
+
 class Scenario:
     def __init__(self,
                  nom,
@@ -17,16 +19,21 @@ class Scenario:
         self.taux_cotisation_tranches = taux_cotisation_tranches
         self.formule_taux_pension = formule_taux_pension
 
+        logger.info(f"Scénario chargé: {self.nom}, retraite à {self.age_retraite}, taux pension: {self.formule_taux_pension}")
+
     def get_taux_cotisation(self, salaire):
         """Retourne le taux de cotisation selon la tranche du salaire."""
         for borne, taux in sorted(self.taux_cotisation_tranches.items()):
             if salaire <= borne:
+                logger.debug(f"Salaire {salaire} → taux cotisation = {taux}")
                 return taux
-        # Si supérieur à toutes les bornes, retourner le taux max
-        return list(self.taux_cotisation_tranches.values())[-1]
+        taux_max = list(self.taux_cotisation_tranches.values())[-1]
+        logger.debug(f"Salaire {salaire} dépasse toutes les bornes → taux max = {taux_max}")
+        return taux_max
 
     def __repr__(self):
         return f"<Scenario: {self.nom}, retraite à {self.age_retraite} ans, taux_pension={self.formule_taux_pension}>"
+
 
 # Définition des scénarios (selon l'énoncé)
 

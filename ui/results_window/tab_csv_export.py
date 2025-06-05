@@ -1,9 +1,10 @@
 from PyQt5.QtWidgets import (
-    QWidget, QVBoxLayout, QPushButton, QLabel, QFileDialog, QMessageBox, QTableWidget, QTableWidgetItem, QShortcut, QKeySequence
+    QWidget, QVBoxLayout, QPushButton, QLabel, QFileDialog, QMessageBox, QTableWidget, QTableWidgetItem, QShortcut, QApplication
 )
+from PyQt5.QtGui import QKeySequence  # ✅ BON
 import pandas as pd
 from utils.fileio import export_dataframe_to_csv
-from ui.results_window import logger
+from ui.results_window.logger import logger
 
 class TabCSVExport(QWidget):
     def __init__(self, data=None):
