@@ -1,68 +1,66 @@
 """
 test_simulator.py
 
-Teste la simulation métier (runs, résultats, robustesse) :
-- Résultats sur 11 ans
-- 40 runs de simulation
-- Test de tous les scénarios
-- Test de valeurs extrêmes
-- Test d’exception (optionnel)
+Teste le cœur de la simulation :
+- Initialisation du simulateur avec des germes (IX, IY, IZ)
+- Exécution d’une simulation sur une ou plusieurs années
+- Vérification des indicateurs calculés (TotEmp, TotRet, Reserve, etc.)
+- Robustesse de la logique face à des scénarios connus
+
+Ce test garantit que la logique métier principale fonctionne,
+et que l’évolution des états est cohérente dans le temps.
 """
 
-import unittest
+import pytest
 from core.simulator import Simulator
-import pandas as pd
+from core.scenario import Scenario
 
-class TestSimulator(unittest.TestCase):
 
-    def test_simuler_11_ans(self):
-        """Simulation de 11 ans (vérifie le nombre de lignes et colonnes)."""
-        sim = Simulator(scenario_id=1)
-        df = sim.simuler_11_ans()
-        self.assertIsInstance(df, pd.DataFrame)
-        self.assertEqual(df.shape[0], 11)  # 11 années simulées
-        # Vérifier colonnes attendues
-        expected_cols = {"Annee", "TotEmp", "TotRet", "TotCotis", "TotPens", "Reserve", "NouvRet", "NouvRec"}
-        self.assertTrue(expected_cols.issubset(set(df.columns)))
+class TestSimulatorCore:
+    def test_initialization_with_seeds(self):
+        """Teste que le simulateur s’initialise correctement avec des germes fixés."""
+        sim = Simulator(seed_x=100, seed_y=200, seed_z=300, scenario_id=1)
+        assert sim is not None
+        assert hasattr(sim, "employees")
+        assert hasattr(sim, "retirees")
+        assert isinstance(sim.year, int)
+        assert sim.year == 2025
 
-    def test_simuler_40_runs(self):
-        """Simulation de 40 runs (vérifie la quantité et la structure)."""
-        sim = Simulator(scenario_id=1)
-        runs = sim.simuler_40_runs()
-        self.assertEqual(len(runs), 40)
-        for df in runs:
-            self.assertIsInstance(df, pd.DataFrame)
-            self.assertEqual(df.shape[0], 11)
+    def test_run_one_year_simulation(self):
+        """Teste que la simulation d’une année met à jour les états."""
+        sim = Simulator(seed_x=100, seed_y=200, seed_z=300, scenario_id=1)
+        initial_tot_emp = sim.get_indicator("TotEmp")
+        initial_retirees = sim.get_indicator("TotRet")
+        initial_reserve = sim.get_indicator("Reserve")
 
-    def test_all_scenarios(self):
-        """Simulation pour chaque scénario (1 à 4)."""
-        for scenario_id in range(1, 5):
-            with self.subTest(scenario_id=scenario_id):
-                sim = Simulator(scenario_id=scenario_id)
-                runs = sim.simuler_40_runs()
-                self.assertEqual(len(runs), 40)
-                for df in runs:
-                    self.assertTrue("Annee" in df.columns)
+        sim.run_one_year()
 
-    def test_extreme_germes(self):
-        """Simulation avec valeurs extrêmes de germes."""
-        sim = Simulator(scenario_id=1, IX=0, IY=999999, IZ=-100)
-        df = sim.simuler_11_ans()
-        self.assertEqual(df.shape[0], 11)
-        # Vérifie que la réserve reste numérique et non vide
-        self.assertTrue(pd.api.types.is_numeric_dtype(df["Reserve"]))
-        self.assertFalse(df["Reserve"].isnull().any())
+        updated_tot_emp = sim.get_indicator("TotEmp")
+        updated_retirees = sim.get_indicator("TotRet")
+        updated_reserve = sim.get_indicator("Reserve")
 
-    def test_exception_handling(self):
-        """(Optionnel) Force une erreur et vérifie qu’elle est bien remontée."""
-        # Suppose que simuler_annee peut lever une exception sur une mauvaise année.
-        sim = Simulator(scenario_id=1)
-        try:
-            result = sim.simuler_annee("not_a_year")
-            self.fail("Une exception aurait dû être levée pour une année invalide.")
-        except Exception as e:
-            self.assertIsInstance(e, Exception)
-            # Ici tu pourrais aussi vérifier que le logger a bien tracé l’erreur.
+        # Attendu : évolution (non stricte, mais des changements)
+        assert updated_tot_emp != initial_tot_emp or updated_retirees != initial_retirees
+        assert isinstance(updated_reserve, float)
 
-if __name__ == '__main__':
-    unittest.main()
+    def test_run_full_simulation_11_years(self):
+        """Teste qu’une simulation complète de 11 ans s’exécute sans erreur."""
+        sim = Simulator(seed_x=100, seed_y=200, seed_z=300, scenario_id=2)
+        sim.run_full_simulation()
+
+        # Doit contenir 11 entrées d’indicateurs
+        assert len(sim.history) == 11
+        assert all("TotEmp" in year_data for year_data in sim.history)
+
+    def test_scenario_effects(self):
+        """Teste l’impact d’un scénario avec cotisation/pension modifiées (ex: scénario 4)."""
+        sim = Simulator(seed_x=101, seed_y=201, seed_z=301, scenario_id=4)
+        sim.run_one_year()
+
+        reserve = sim.get_indicator("Reserve")
+        pension = sim.get_indicator("TotPens")
+        cotisations = sim.get_indicator("TotCotis")
+
+        assert reserve > 0
+        assert cotisations > 0
+        assert pension > 0

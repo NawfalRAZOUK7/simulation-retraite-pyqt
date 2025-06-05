@@ -1,101 +1,57 @@
 """
 test_stats.py
 
-Teste les fonctions statistiques (moyenne, intervalle de confiance, robustesse) :
-- Moyenne sur listes simples ou DataFrame
-- Intervalle de confiance 95% sur données connues (listes et DataFrame)
-- Cas limites (liste vide, un seul élément)
-- Cohérence entre calculs manuels et via DataFrame
-- Tests spécifiques : IC par année (intervalle_confiance_reserve), IC multi-années (intervalle_confiance_multi)
+Teste les fonctions statistiques du module utils.stats :
+- Calcul de la moyenne et de l’écart-type
+- Calcul de l’intervalle de confiance à 95%
+- Comportement face à des données vides ou constantes
+
+Ces tests garantissent la validité des calculs utilisés dans l’analyse des 40 simulations.
 """
 
-import unittest
-import pandas as pd
-from utils.stats import (
-    moyenne_reserve,
-    intervalle_confiance,
-    intervalle_confiance_reserve,
-    intervalle_confiance_multi
-)
+import pytest
+from utils import stats
 
-class TestStats(unittest.TestCase):
 
-    def test_moyenne_simple(self):
-        """Moyenne sur une liste simple."""
-        data = [100, 200, 300]
-        self.assertAlmostEqual(moyenne_reserve(data), 200)
-
-    def test_moyenne_dataframe(self):
-        """Moyenne via une DataFrame Reserve."""
-        df = pd.DataFrame({'Reserve': [10, 20, 30]})
-        self.assertAlmostEqual(moyenne_reserve(df), 20)
-
-    def test_moyenne_dataframe_par_annee(self):
-        """Moyenne via une DataFrame filtrée par année."""
-        df = pd.DataFrame({
-            'Annee': [2020, 2020, 2021],
-            'Reserve': [100, 200, 300]
-        })
-        self.assertAlmostEqual(moyenne_reserve(df, annee=2020), 150)
-        self.assertAlmostEqual(moyenne_reserve(df, annee=2021), 300)
-
-    def test_intervalle_confiance_valeurs_connues(self):
-        """IC 95% sur un jeu de données connu (liste simple)."""
-        data = [100, 200, 300, 400, 500]
-        ic_low, ic_high = intervalle_confiance(data, alpha=0.05)
-        self.assertTrue(ic_low < sum(data)/len(data) < ic_high)
-        # Vérification robuste avec assertAlmostEqual (tolérance 2 unités)
-        self.assertAlmostEqual(ic_low, 103.01, delta=2)
-        self.assertAlmostEqual(ic_high, 496.99, delta=2)
-
-    def test_ic_single_element(self):
-        """Cas limite : IC sur une liste à un seul élément."""
-        data = [123]
-        ic_low, ic_high = intervalle_confiance(data, alpha=0.05)
-        self.assertEqual(ic_low, ic_high)
-        self.assertEqual(ic_low, 123)
-
-    def test_ic_empty(self):
-        """Cas limite : IC sur une liste vide ou None."""
-        ic_low, ic_high = intervalle_confiance([], alpha=0.05)
-        self.assertIsNone(ic_low)
-        self.assertIsNone(ic_high)
-        ic_low, ic_high = intervalle_confiance(None, alpha=0.05)
-        self.assertIsNone(ic_low)
-        self.assertIsNone(ic_high)
-
-    def test_moyenne_vs_dataframe(self):
-        """Cohérence entre moyenne brute et via DataFrame."""
+class TestStats:
+    def test_mean_of_known_values(self):
+        """Teste la moyenne d’une série de valeurs connues."""
         data = [100, 200, 300, 400]
-        moyenne1 = moyenne_reserve(data)
-        df = pd.DataFrame({'Reserve': data})
-        moyenne2 = moyenne_reserve(df['Reserve'])
-        self.assertAlmostEqual(moyenne1, moyenne2)
+        result = stats.mean(data)
+        assert result == 250
 
-    # ----------- Tests spécifiques ajoutés -----------
+    def test_std_dev_of_known_values(self):
+        """Teste l’écart-type sur un jeu de données connu."""
+        data = [2, 4, 4, 4, 5, 5, 7, 9]
+        result = stats.standard_deviation(data)
+        assert round(result, 2) == 2.14  # Écart-type empirique
 
-    def test_ic_reserve_dataframe(self):
-        """IC via DataFrame pour une année donnée."""
-        df = pd.DataFrame({
-            'Annee': [2020, 2020, 2021, 2021, 2021],
-            'Reserve': [100, 200, 300, 400, 500]
-        })
-        ic_low, ic_high = intervalle_confiance_reserve(df, annee=2021, alpha=0.05)
-        self.assertTrue(ic_low < 400 < ic_high)  # moyenne de 2021 = 400
+    def test_confidence_interval(self):
+        """Teste l’intervalle de confiance à 95% avec des données simulées."""
+        data = [100, 105, 95, 102, 98, 101, 97, 99, 100, 103]
+        mean_value, lower, upper = stats.confidence_interval(data, z=1.96)
 
-    def test_ic_multi(self):
-        """IC multi-années via DataFrame."""
-        df = pd.DataFrame({
-            'Annee': [2020, 2020, 2021, 2021, 2021],
-            'Reserve': [100, 200, 300, 400, 500]
-        })
-        result = intervalle_confiance_multi(df, [2020, 2021], alpha=0.05)
-        self.assertIn(2020, result)
-        self.assertIn(2021, result)
-        ic_2020 = result[2020]
-        ic_2021 = result[2021]
-        self.assertTrue(ic_2020[0] < 150 < ic_2020[1])   # moyenne 2020 = 150
-        self.assertTrue(ic_2021[0] < 400 < ic_2021[1])   # moyenne 2021 = 400
+        assert isinstance(mean_value, float)
+        assert lower < mean_value < upper
+        assert round(mean_value, 1) == 100.0  # attendu environ
 
-if __name__ == '__main__':
-    unittest.main()
+    def test_empty_data_raises(self):
+        """Vérifie qu’une exception est levée avec une liste vide."""
+        with pytest.raises(ValueError):
+            stats.mean([])
+
+        with pytest.raises(ValueError):
+            stats.standard_deviation([])
+
+        with pytest.raises(ValueError):
+            stats.confidence_interval([])
+
+    def test_constant_data_std_zero(self):
+        """Teste le cas où toutes les valeurs sont identiques (σ = 0)."""
+        data = [42, 42, 42, 42]
+        std_dev = stats.standard_deviation(data)
+        assert std_dev == 0.0
+
+        mean_value, lower, upper = stats.confidence_interval(data)
+        assert mean_value == 42
+        assert lower == upper == 42
