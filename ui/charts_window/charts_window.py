@@ -35,7 +35,7 @@ class ChartsWindow(QMainWindow):
         self.setWindowTitle("Graphiques de Simulation")
         self.setGeometry(270, 270, 1000, 700)
         self.data = data  # DataFrame principal (réserve, etc.)
-        self.data_scenarios = data_scenarios or {}  # Dictionnaire : nom_scénario -> DataFrame
+        self.data_scenarios = data_scenarios  # ✅ garde None si None
         self.init_ui()
         self.apply_theme()  # Palette Qt & Matplotlib
 
@@ -53,7 +53,6 @@ class ChartsWindow(QMainWindow):
                 spacing: 2px;
                 padding: 3px 8px;
                 border-radius: 14px;
-                box-shadow: 0px 3px 10px #dde1ee;
             }
         """)
         self.addToolBar(Qt.TopToolBarArea, self.toolbar)
@@ -76,7 +75,11 @@ class ChartsWindow(QMainWindow):
 
         # Exporter rapport PDF
         btn_export_pdf = AnimatedToolButton()
-        btn_export_pdf.setIcon(QIcon("assets/pdf_icon.png") if os.path.exists("assets/pdf_icon.png") else QIcon())
+        pdf_icon_path = os.path.join(ASSETS_DIR, "pdf_icon.png")
+        if os.path.exists(pdf_icon_path):
+            btn_export_pdf.setIcon(QIcon(pdf_icon_path))
+        else:
+            btn_export_pdf.setText("📄 PDF")  # 👈 Texte fallback si l’icône manque
         btn_export_pdf.setToolTip("Exporter rapport PDF…")
         btn_export_pdf.clicked.connect(self.export_pdf_report)
         tool_btns.append(btn_export_pdf)
@@ -93,7 +96,7 @@ class ChartsWindow(QMainWindow):
         for btn in tool_btns:
             self.toolbar.addWidget(btn)
 
-        # --- Widget central avec onglets (FadeTabWidget instead of QTabWidget) ---
+        # --- Widget central avec onglets ---
         central_widget = QWidget()
         self.setCentralWidget(central_widget)
         layout = QVBoxLayout()
@@ -123,9 +126,20 @@ class ChartsWindow(QMainWindow):
         exportbar.setWordWrap(True)
         layout.addWidget(exportbar)
 
-        # --- Tabs: use FadeTabWidget (auto fade-in on tab switch) ---
+        # ===== BANNIÈRE : Comparaison non disponible =====
+        self.comparaison_warning = QLabel(
+            "<div style='color:#9f4c3f; background:#ffe6e2; border-radius:7px; padding:7px 18px; margin-bottom:8px;'>"
+            "❌ <b>Comparaison non disponible</b> — Vous devez d’abord importer plusieurs scénarios.<br>"
+            "<i>Astuce : utilisez le bouton ‘Générer comparaison multi-scénarios’ depuis le Menu principal.</i>"
+            "</div>"
+        )
+        self.comparaison_warning.setWordWrap(True)
+        self.comparaison_warning.hide()  # Masquée par défaut
+        layout.addWidget(self.comparaison_warning)
+
+        # --- Onglets (FadeTabWidget) ---
         from ui.widgets.fade_tab_widget import FadeTabWidget
-        self.tabs = FadeTabWidget(duration=340)  # smooth fade
+        self.tabs = FadeTabWidget(duration=340)
         layout.addWidget(self.tabs)
 
         # Label d’aperçu DataFrame (après import)
@@ -148,6 +162,12 @@ class ChartsWindow(QMainWindow):
     def refresh_tabs(self, data, data_scenarios):
         """Recharge tous les onglets à partir des nouvelles données."""
         self.tabs.clear()
+
+        # ✅ Affiche ou masque la bannière dynamique selon la comparaison dispo
+        if not data_scenarios:
+            self.comparaison_warning.show()
+        else:
+            self.comparaison_warning.hide()
 
         # Onglet "Réserve sur 11 ans"
         if data is not None and isinstance(data, pd.DataFrame):
@@ -239,35 +259,43 @@ class ChartsWindow(QMainWindow):
                 return
 
             try:
+                # === Récupération des figures des onglets ===
                 figures = []
                 if "figures" in sections:
                     for tab in [getattr(self, n, None) for n in ["tab_reserve", "tab_confidence", "tab_comparaison"]]:
-                        if hasattr(tab, "figure"):
-                            figures.append(tab.figure)
-                stats = None
+                        if hasattr(tab, "get_figure"):
+                            figures.append(tab.get_figure())
+
+                # === Récupération des stats ===
+                stats = []
                 if "stats" in sections:
-                    stats = {
-                        "nb_scenarios": len(self.data_scenarios) if self.data_scenarios else 0,
-                        "total_lignes": len(self.data) if isinstance(self.data, pd.DataFrame) else 0,
-                    }
-                summary = None
+                    for tab in [getattr(self, n, None) for n in ["tab_reserve", "tab_confidence", "tab_comparaison"]]:
+                        if hasattr(tab, "get_stats"):
+                            stats.append((tab.__class__.__name__, tab.get_stats()))
+
+                # === Récupération du résumé texte ===
+                summary = ""
                 if "summary" in sections:
-                    summary = (
-                        "Rapport de simulation de réserve et comparaisons.\n"
-                        "Ce rapport a été généré automatiquement par l’application, "
-                        "en fonction des options sélectionnées."
-                    )
-                ok, err = export_report_to_pdf(
+                    for tab in [getattr(self, n, None) for n in ["tab_reserve", "tab_confidence", "tab_comparaison"]]:
+                        if hasattr(tab, "get_summary"):
+                            summary += tab.get_summary() + "\n\n"
+
+                # === Export PDF final ===
+                ok = export_report_to_pdf(
+                    path=pdf_path,
                     figures=figures,
                     stats=stats,
                     summary=summary,
                     sections=sections,
-                    path=pdf_path,
+                    title="Rapport Simulation Retraite",
+                    author="Nawfal RAZOUK"
                 )
+
                 if ok:
                     confirm_export_success(pdf_path, parent=self)
                 else:
-                    confirm_export_failure(pdf_path, err, parent=self)
+                    confirm_export_failure(pdf_path, "Erreur inconnue", parent=self)
+
             except Exception as e:
                 show_error(self, f"Erreur lors de l’export PDF :\n{e}")
 

@@ -5,13 +5,41 @@ from PyQt5.QtWidgets import (
 )
 from PyQt5.QtCore import Qt
 
-def show_error(message, parent=None):
-    """Affiche une boîte de dialogue d'erreur bloquante."""
-    QMessageBox.critical(parent, "Erreur", str(message))
+def show_error(*args):
+    """
+    Affiche une boîte de dialogue d'erreur bloquante.
+    - show_error("Message simple")
+    - show_error(parent, "Titre", "Message")
+    - show_error("Message", parent=...)
+    """
+    if len(args) == 1:
+        message = str(args[0])
+        parent = None
+        title = "Erreur"
+    elif len(args) == 3:
+        parent, title, message = args
+    else:
+        raise TypeError("show_error() prend 1 ou 3 arguments positionnels.")
 
-def show_info(message, parent=None):
-    """Affiche une boîte de dialogue d'information."""
-    QMessageBox.information(parent, "Information", str(message))
+    QMessageBox.critical(parent, title, message)
+
+def show_info(*args):
+    """
+    Affiche une boîte d'information.
+    - show_info("Message simple")
+    - show_info(parent, "Titre", "Message")
+    - show_info("Message", parent=...)
+    """
+    if len(args) == 1:
+        message = str(args[0])
+        parent = None
+        title = "Information"
+    elif len(args) == 3:
+        parent, title, message = args
+    else:
+        raise TypeError("show_info() prend 1 ou 3 arguments positionnels.")
+
+    QMessageBox.information(parent, title, message)
 
 def show_warning(message, parent=None):
     """Affiche une boîte de dialogue d'avertissement."""

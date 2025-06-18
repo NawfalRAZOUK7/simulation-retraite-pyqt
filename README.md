@@ -58,64 +58,94 @@ Elle propose une **interface graphique moderne** (PyQt5) avec mode sombre/clair,
 <pre>
 📁 simulation-retraite-pyqt/
 │
-├── 📄 README.md              # ➤ Documentation générale du projet
-├── 📦 requirements.txt       # ➤ Liste des dépendances Python
-├── 🚀 main.py                # ➤ Point d'entrée principal
+├── 📄 README.md              # ➤ Ce fichier contient la documentation principale du projet : objectif, installation, usage, etc.
+├── 📦 requirements.txt       # ➤ Liste des bibliothèques Python nécessaires pour exécuter le projet
+├── 🚀 main.py                # ➤ Fichier principal à lancer pour démarrer l’application
 │
-├── 🎨 assets/                # ➤ Images, logos, icônes
+├── ✅ coverage.svg           # ➤ Badge local affichant le pourcentage de couverture des tests
+├── 📊 htmlcov/               # ➤ Dossier généré automatiquement par pytest-cov pour afficher un rapport HTML complet
 │
-├── 🧠 core/                  # 💡 Logique métier (modèles, moteur de simulation)
+├── 🎨 assets/                # ➤ Contient les ressources visuelles (ex. : icônes lune et soleil)
+│   ├── moon.png
+│   └── sun.png
+│
+├── 🧠 core/                  # 💡 Composants métier fondamentaux (modèles, logique de simulation)
+│   ├── __init__.py           # ➤ Marqueur de package Python
+│   ├── employee.py           # ➤ Définition de la classe Employé
+│   ├── retiree.py            # ➤ Définition de la classe Retraité
+│   ├── scenario.py           # ➤ Définition des scénarios de retraite
+│   ├── simulator.py          # ➤ Moteur principal qui exécute la simulation
+│   ├── germes.py             # ➤ Gestion des éléments aléatoires (germes)
+│   └── logger.py             # ➤ Logger spécifique pour suivre les actions dans core/
+│
+├── 🗃️ data/                  # 📂 Dossier de données et résultats
+│   ├── config/               # ⚙️ Configuration initiale de l’utilisateur (placeholder)
+│   │   └── README.md
+│   └── output/               # 📤 Résultats générés après exécution
+│       ├── README.md
+│       └── resultats.csv     # ➤ Fichier CSV d’export
+│
+├── 🖼️ ui/                    # 🖼️ Interface utilisateur graphique PyQt5
 │   ├── __init__.py
-│   ├── employee.py       # Classe Employé
-│   ├── retiree.py        # Classe Retraité
-│   ├── scenario.py       # Définition scénarios
-│   ├── simulator.py      # Moteur principal
-│   └── germes.py         # Gestion des germes
+│   ├── menu_window.py        # ➤ Menu principal
+│   ├── simulation_window.py  # ➤ Fenêtre principale de simulation
+│   ├── progress_dialog.py    # ➤ Fenêtre de progression lors des calculs
+│   ├── settings_window.py    # ➤ Fenêtre des paramètres utilisateurs
+│   ├── dialogs.py            # ➤ Boîtes de dialogue diverses
+│   ├── theme.py              # ➤ Gestion du thème clair/sombre
 │
-├── 🗃️ data/
-│   ├── config/           # ⚙️ Configurations utilisateur
-│   └── output/           # 📤 Fichiers générés/exportés
+│   ├── charts_window/        # 📊 Graphiques interactifs
+│   │   ├── __init__.py
+│   │   ├── charts_window.py          # ➤ Fenêtre des graphiques
+│   │   ├── tab_comparaison.py       # ➤ Onglet comparaison entre scénarios
+│   │   ├── tab_confidence.py        # ➤ Onglet pour intervalles de confiance
+│   │   ├── tab_reserve.py           # ➤ Onglet pour les réserves de retraite
+│   │   ├── scenario_selector.py     # ➤ Sélection dynamique des scénarios
+│   │   └── logger.py                # ➤ Logger local pour cette fenêtre
 │
-├── 🖼️ ui/                    # 🖼️ Interface graphique PyQt5
-│   ├── __init__.py
-│   ├── menu_window.py
-│   ├── simulation_window.py
-│   ├── progress_dialog.py
-│   ├── settings_window.py
-│   ├── charts_window/
+│   ├── results_window/       # 📈 Résultats tabulaires
 │   │   ├── __init__.py
-│   │   ├── charts_window.py
-│   │   ├── tab_comparaison.py
-│   │   ├── tab_confidence.py
-│   │   └── tab_reserve.py
-│   ├── results_window/
-│   │   ├── __init__.py
-│   │   ├── results_window.py
-│   │   ├── tab_by_year.py
-│   │   ├── tab_csv_export.py
-│   │   ├── tab_csv_import.py
-│   │   └── tab_summary.py
-│   └── widgets/
+│   │   ├── results_window.py       # ➤ Fenêtre d’affichage global
+│   │   ├── tab_by_year.py         # ➤ Vue par année
+│   │   ├── tab_csv_export.py      # ➤ Export CSV
+│   │   ├── tab_csv_import.py      # ➤ Import CSV
+│   │   ├── tab_summary.py         # ➤ Résumé global
+│   │   └── logger.py              # ➤ Logger spécifique
+│
+│   └── widgets/              # 🧩 Composants PyQt personnalisés
 │       ├── __init__.py
-│       ├── animated_tool_button.py
-│       ├── csv_table_widget.py
-│       ├── fade_tab_widget.py
-│       ├── fade_widget.py
-│       ├── hybrid_graph_widget.py
-│       ├── plot_helpers.py
-│       ├── report_export_dialog.py
-│       └── sort_dialog.py
+│       ├── animated_tool_button.py    # ➤ Bouton avec animation
+│       ├── csv_table_widget.py        # ➤ Table CSV avec gestion d'import/export
+│       ├── fade_tab_widget.py         # ➤ Onglets avec transition en fondu
+│       ├── fade_widget.py             # ➤ Widget avec effet de disparition
+│       ├── hybrid_graph_widget.py     # ➤ Graphique interactif combiné
+│       ├── plot_helpers.py            # ➤ Fonctions d’aide pour les graphiques
+│       ├── report_export_dialog.py    # ➤ Dialogue pour exporter les rapports
+│       └── sort_dialog.py             # ➤ Dialogue pour tri personnalisé
 │
-└── 🧰 utils/                 # 🧰 Fonctions utilitaires
+├── 🧪 tests/                 # ✅ Tests unitaires automatisés avec Pytest
+│   ├── conftest.py               # ➤ Configuration des fixtures communes
+│   ├── test_charts.py            # ➤ Tests des graphiques
+│   ├── test_fileio.py            # ➤ Tests des fonctions de fichier
+│   ├── test_logger.py            # ➤ Tests des loggers
+│   ├── test_simulator.py         # ➤ Tests du moteur de simulation
+│   ├── test_stats.py             # ➤ Tests statistiques
+│   ├── test_structure.py         # ➤ Tests de structure (données, format, validité)
+│   ├── test_theme.py             # ➤ Tests des thèmes UI
+│   ├── test_ui_shortcuts.py      # ➤ Tests des raccourcis clavier
+│   ├── test_widgets.py           # ➤ Tests des widgets personnalisés
+│   └── README.md                 # ➤ Guide pour lancer les tests localement
+│
+└── 🧰 utils/                 # 🧰 Fonctions utilitaires transversales
     ├── __init__.py
-    ├── charts.py
-    ├── fileio.py
-    ├── csv_sort_utils.py
-    ├── logger.py
-    ├── mpl_theme.py
-    ├── pdf_export.py
-    ├── stats.py
-    └── theme_utils.py
+    ├── charts.py               # ➤ Génération de graphiques
+    ├── fileio.py               # ➤ Lecture/écriture de fichiers
+    ├── csv_sort_utils.py       # ➤ Aide au tri CSV
+    ├── logger.py               # ➤ Logger générique
+    ├── mpl_theme.py            # ➤ Thèmes personnalisés matplotlib
+    ├── pdf_export.py           # ➤ Export PDF
+    ├── stats.py                # ➤ Fonctions statistiques
+    └── theme_utils.py          # ➤ Fonctions liées aux thèmes graphiques
 </pre>
 
 ---

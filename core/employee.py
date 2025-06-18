@@ -8,7 +8,7 @@ class Employee:
         self.age = age
         self.salaire = salaire
         self.date_embauche = date_embauche  # année d'embauche (int, ex: 2015)
-        self.annees_travaillees = 0  # sera mis à jour dans la simulation
+        self.annees_travaillees = 2025 - date_embauche  # ✅ correctif ici
         logger.debug(f"Création Employé #{self.id} | Âge: {self.age}, Salaire: {self.salaire}, Embauche: {self.date_embauche}")
 
     def avancer_age(self):

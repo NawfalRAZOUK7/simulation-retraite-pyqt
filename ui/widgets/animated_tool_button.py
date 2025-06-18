@@ -1,7 +1,7 @@
 # ui/widgets/animated_tool_button.py
 
 from PyQt5.QtWidgets import QToolButton
-from PyQt5.QtCore import QPropertyAnimation, QEasingCurve, pyqtProperty
+from PyQt5.QtCore import QPropertyAnimation, QEasingCurve, pyqtProperty, Qt
 from PyQt5.QtGui import QPainter
 
 class AnimatedToolButton(QToolButton):
@@ -9,27 +9,29 @@ class AnimatedToolButton(QToolButton):
         super().__init__(parent)
         self._scale = 1.0
 
-        # ✅ Animation principale utilisée dans hover
-        self.anim = QPropertyAnimation(self, b"scale", self)
-        self.anim.setDuration(260)  # ms
-        self.anim.setEasingCurve(QEasingCurve.InOutCubic)
+        # ✅ Style du texte forcé
+        self.setToolButtonStyle(Qt.ToolButtonTextOnly)
 
-        # ✅ Pour compatibilité avec les tests : attribut explicite "animation"
+        # ✅ Animation hover
+        self.anim = QPropertyAnimation(self, b"scale", self)
+        self.anim.setDuration(260)
+        self.anim.setEasingCurve(QEasingCurve.InOutCubic)
         self.animation = self.anim
 
+        # ✅ Style CSS explicite
         self.setStyleSheet("""
             QToolButton {
-                background: transparent;
-                border: none;
-                padding: 6px;
-                border-radius: 6px;
-                transition: background 0.2s;
+                background-color: #f2f4fc;
+                border-radius: 12px;
+                font-size: 16px;
+                color: #2c2f4c;
+                padding: 8px;
             }
             QToolButton:hover {
-                background: #ecf0fa;
+                background-color: #ecf0fa;
             }
             QToolButton:pressed {
-                background: #dbeaff;
+                background-color: #dbeaff;
             }
         """)
 

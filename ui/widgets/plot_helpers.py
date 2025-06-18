@@ -101,7 +101,7 @@ def mpl_add_brush_zoom(figure, ax, on_select=None):
         ax.set_ylim(eclick.ydata, erelease.ydata)
         figure.canvas.draw_idle()
         if on_select: on_select(eclick, erelease)
-    rs = RectangleSelector(ax, onselect, drawtype='box', useblit=True,
+    rs = RectangleSelector(ax, onselect, useblit=True,
                            button=[1],  # Only left click
                            minspanx=5, minspany=5, spancoords='pixels',
                            interactive=True)

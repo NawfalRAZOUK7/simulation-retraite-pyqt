@@ -86,7 +86,7 @@ def style_button(widget, color=PRIMARY_COLOR, dark_mode=False):
     widget.setStyleSheet(f"""
         QPushButton {{
             background-color: {col};
-            color: white;
+            color: 2c2f4c;
             border: none;
             border-radius: 7px;
             padding: 7px 18px;

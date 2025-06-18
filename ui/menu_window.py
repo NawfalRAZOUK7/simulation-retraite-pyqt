@@ -7,9 +7,11 @@ from PyQt5.QtCore import Qt
 from PyQt5.QtGui import QKeySequence, QColor
 from ui.simulation_window import SimulationWindow
 from ui.results_window.results_window import ResultsWindow
+from ui.csv_import_window.csv_import_window import CSVImportWindow
 from ui.charts_window.charts_window import ChartsWindow
 from ui.progress_dialog import ProgressDialog
 from ui.settings_window import SettingsWindow
+from ui.report_window import ReportWindow  # ✅ Ajouté
 from ui.widgets.animated_tool_button import AnimatedToolButton
 from ui import logger
 
@@ -28,7 +30,6 @@ class MenuWindow(QMainWindow):
         logger.info("MenuWindow initialisée.")
 
     def init_ui(self):
-        # ===== Centered Card Widget =====
         main_widget = QWidget()
         self.setCentralWidget(main_widget)
 
@@ -48,9 +49,8 @@ class MenuWindow(QMainWindow):
             border-radius: 24px;
             border: 1.2px solid #e1e6ef;
             padding: 30px 25px;
-            box-shadow: 0px 10px 30px #aab3cf40;
         """)
-        # Drop shadow (Qt5/6)
+
         shadow = QGraphicsDropShadowEffect()
         shadow.setBlurRadius(22)
         shadow.setOffset(0, 7)
@@ -62,59 +62,72 @@ class MenuWindow(QMainWindow):
         title_label = QLabel("Menu Principal")
         title_label.setAlignment(Qt.AlignCenter)
         title_label.setStyleSheet("""
-            font-size: 24px; font-weight: 600;
-            color: #4753a3;
-            margin-bottom: 12px;
-            letter-spacing: 0.5px;
+            font-size: 26px;
+            font-weight: 700;
+            margin-bottom: 14px;
+            letter-spacing: 0.6px;
+            color: #2c2f4c;
         """)
+        title_shadow = QGraphicsDropShadowEffect()
+        title_shadow.setBlurRadius(10)
+        title_shadow.setOffset(0, 3)
+        title_shadow.setColor(QColor(0, 0, 0, 50))
+        title_label.setGraphicsEffect(title_shadow)
         card_layout.addWidget(title_label)
 
-        # --- Animated Emoji Buttons ---
-        btn_simulation = AnimatedToolButton()
-        btn_simulation.setText("🚀 Lancer une Simulation")
-        btn_simulation.setMinimumHeight(40)
-        btn_simulation.setStyleSheet("font-size: 16px; margin: 9px 0; border-radius: 12px;")
+        # --- 🟡 Ancienne version (avec animation) ---
+        # btn_simulation = AnimatedToolButton()
+        # btn_simulation.setText("🚀 Lancer une Simulation")
+        # btn_simulation.setMinimumHeight(40)
 
-        btn_resultats = AnimatedToolButton()
-        btn_resultats.setText("📊 Voir les Résultats")
-        btn_resultats.setMinimumHeight(40)
-        btn_resultats.setStyleSheet("font-size: 16px; margin: 9px 0; border-radius: 12px;")
+        # btn_resultats = AnimatedToolButton()
+        # btn_resultats.setText("📊 Voir les Résultats")
+        # btn_resultats.setMinimumHeight(40)
 
-        btn_graphiques = AnimatedToolButton()
-        btn_graphiques.setText("📈 Graphiques")
-        btn_graphiques.setMinimumHeight(40)
-        btn_graphiques.setStyleSheet("font-size: 16px; margin: 9px 0; border-radius: 12px;")
+        # btn_graphiques = AnimatedToolButton()
+        # btn_graphiques.setText("📈 Graphiques")
+        # btn_graphiques.setMinimumHeight(40)
 
-        btn_generate_comparaison = AnimatedToolButton()
-        btn_generate_comparaison.setText("🧩 Générer comparaison multi-scénarios")
-        btn_generate_comparaison.setMinimumHeight(40)
-        btn_generate_comparaison.setStyleSheet("font-size: 16px; margin: 9px 0; border-radius: 12px;")
+        # btn_generate_comparaison = AnimatedToolButton()
+        # btn_generate_comparaison.setText("🧩 Générer comparaison multi-scénarios")
+        # btn_generate_comparaison.setMinimumHeight(40)
 
-        btn_parametres = AnimatedToolButton()
-        btn_parametres.setText("⚙️ Paramètres")
-        btn_parametres.setMinimumHeight(40)
-        btn_parametres.setStyleSheet("font-size: 16px; margin: 9px 0; border-radius: 12px;")
+        # btn_parametres = AnimatedToolButton()
+        # btn_parametres.setText("⚙️ Paramètres")
+        # btn_parametres.setMinimumHeight(40)
 
-        # Add to card layout
+        # --- 🟢 Nouvelle version (sans animation, sans styles explicites) ---
+        from PyQt5.QtWidgets import QPushButton
+
+        btn_simulation = QPushButton("🚀 Lancer une Simulation")
+        btn_resultats = QPushButton("📊 Voir les Résultats")
+        btn_import_csv = QPushButton("📂 Importer un CSV")
+        btn_graphiques = QPushButton("📈 Graphiques")
+        btn_generate_comparaison = QPushButton("🧩 Générer comparaison multi-scénarios")
+        btn_parametres = QPushButton("⚙️ Paramètres")
+        btn_report = QPushButton("📄 Exporter rapport PDF")
+
         for btn in [
-            btn_simulation, btn_resultats, btn_graphiques,
-            btn_generate_comparaison, btn_parametres
+            btn_simulation, btn_resultats, btn_import_csv, btn_graphiques,
+            btn_generate_comparaison, btn_parametres, btn_report
         ]:
             card_layout.addWidget(btn)
 
-        # Connect slots
         btn_simulation.clicked.connect(self.ouvrir_simulation)
         btn_resultats.clicked.connect(self.ouvrir_resultats)
+        btn_import_csv.clicked.connect(self.ouvrir_import_csv)
         btn_graphiques.clicked.connect(self.ouvrir_graphiques)
         btn_parametres.clicked.connect(self.ouvrir_parametres)
+        btn_report.clicked.connect(self.ouvrir_fenetre_rapport)
         btn_generate_comparaison.clicked.connect(self.generer_comparaison_multi_scenarios)
 
-        # For shortcuts to work: keep buttons as attributes
         self._btn_simulation = btn_simulation
         self._btn_resultats = btn_resultats
+        self._btn_import_csv = btn_import_csv
         self._btn_graphiques = btn_graphiques
         self._btn_generate_comparaison = btn_generate_comparaison
         self._btn_parametres = btn_parametres
+        self._btn_report = btn_report
 
     def _add_shortcuts(self):
         QShortcut(QKeySequence("Ctrl+1"), self, activated=self._btn_simulation.click)
@@ -122,11 +135,17 @@ class MenuWindow(QMainWindow):
         QShortcut(QKeySequence("Ctrl+3"), self, activated=self._btn_graphiques.click)
         QShortcut(QKeySequence("Ctrl+4"), self, activated=self._btn_generate_comparaison.click)
         QShortcut(QKeySequence("Ctrl+5"), self, activated=self._btn_parametres.click)
+        QShortcut(QKeySequence("Ctrl+6"), self, activated=self._btn_import_csv.click)
 
     def ouvrir_simulation(self):
         self.sim_window = SimulationWindow(parent=self)
         self.sim_window.show()
         logger.info("Fenêtre Simulation ouverte.")
+
+    def ouvrir_import_csv(self):
+        self.import_window = CSVImportWindow(parent=self)
+        self.import_window.show()
+        logger.info("Fenêtre Import CSV ouverte.")
 
     def ouvrir_resultats(self):
         if self.dernier_resultat_df is not None:
@@ -160,18 +179,39 @@ class MenuWindow(QMainWindow):
         logger.info("Comparaison multi-scénarios générée avec succès.")
 
     def ouvrir_graphiques(self):
-        if self.data_scenarios is None:
-            QMessageBox.information(self, "Info", "Aucune comparaison multi-scénarios disponible.\nVeuillez d'abord cliquer sur 'Générer comparaison multi-scénarios'.")
-            logger.warning("Ouverture Graphiques : data_scenarios absent.")
+        if self.dernier_resultat_df is None:
+            QMessageBox.information(self, "Info",
+                                    "Aucune donnée disponible pour les graphiques.\nImportez un CSV ou lancez une simulation.")
+            logger.warning("Ouverture Graphiques : aucun résultat de simulation ou CSV.")
             return
-        self.charts_window = ChartsWindow(data=self.dernier_resultat_df, data_scenarios=self.data_scenarios)
+
+        if self.data_scenarios is None:
+            logger.info("Ouverture Graphiques : affichage simple sans comparaison.")
+            self.charts_window = ChartsWindow(data=self.dernier_resultat_df, data_scenarios=None)
+        else:
+            logger.info("Ouverture Graphiques : affichage avec comparaison multi-scénarios.")
+            self.charts_window = ChartsWindow(data=self.dernier_resultat_df, data_scenarios=self.data_scenarios)
+
         self.charts_window.show()
-        logger.info("Fenêtre Graphiques ouverte.")
 
     def ouvrir_parametres(self):
         dlg = SettingsWindow(parent=self)
         dlg.exec_()
         logger.info("Fenêtre Paramètres ouverte.")
+
+    def set_dernier_resultat_df(self, df):
+        """Permet à une fenêtre fille (ex: CSVImportWindow) de définir le résultat courant."""
+        self.dernier_resultat_df = df
+
+    def ouvrir_fenetre_rapport(self):
+        if self.dernier_resultat_df is None:
+            QMessageBox.information(self, "Info", "Aucune donnée disponible pour générer un rapport.")
+            logger.warning("Ouverture ReportWindow : aucun résultat disponible.")
+            return
+
+        dlg = ReportWindow(data=self.dernier_resultat_df, data_scenarios=self.data_scenarios, parent=self)
+        dlg.exec_()  # ← meilleure UX + modal
+        logger.info("Fenêtre Rapport PDF ouverte.")
 
 # --- Pour test seul ---
 # if __name__ == "__main__":

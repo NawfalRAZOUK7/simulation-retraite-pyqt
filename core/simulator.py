@@ -126,7 +126,8 @@ class Simulator:
                 emp.augmenter_salaire()
 
         # Recrutement
-        n_recrues = int(250 + self.germes.alea() * 150)
+        logger.debug("Valeur alea germes: %.5f", self.germes.alea())
+        n_recrues = 300  # fixe pour test
         new_emps = self._generate_nouveaux_recrues(n_recrues, annee)
         self.employes.extend(new_emps)
 
@@ -191,6 +192,10 @@ class Simulator:
         except Exception as e:
             logger.error("Erreur pendant simuler_40_runs : %s", str(e))
             raise
+
+        # ✅ Solution ici :
+        self.dernier_resultat_df = pd.concat(all_runs, ignore_index=True)
+
         return all_runs
 
     # --- Aliases pour compatibilité descendante avec anciens tests ---

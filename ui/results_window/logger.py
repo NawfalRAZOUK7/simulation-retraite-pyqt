@@ -15,4 +15,4 @@ except ImportError:
     import logging
     logger = logging.getLogger("app.results_window")
 
-logger.debug("Logger initialisé pour le module 'core'.")
+logger.debug("Logger initialisé pour le module 'results_window'.")

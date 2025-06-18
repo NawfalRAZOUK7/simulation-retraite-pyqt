@@ -9,19 +9,22 @@ class FadeTabWidget(QTabWidget):
         super().__init__(parent)
         self._duration = duration
         self._easing = easing or QEasingCurve.Linear
-        self.currentChanged.connect(self._animate_fade)
+        self._tab_widgets = []  # 🔒 Références internes pour éviter la suppression par GC
+        self.currentChanged.connect(self._on_tab_changed)
 
     def addTab(self, widget: QWidget, title: str):
-        """Ajoute un onglet et assure que le widget est visible à l’ajout."""
-        widget.setVisible(True)  # ← utile pour éviter les erreurs d’état
-        super().addTab(widget, title)
+        """Ajoute un onglet avec un effet de fondu via FadeWidget."""
+        fade_widget = FadeWidget(widget)
+        fade_widget.setVisible(True)  # ⚠️ Nécessaire pour affichage initial
+        self._tab_widgets.append(fade_widget)  # 🔒 Pour garder une référence
+        super().addTab(fade_widget, title)
 
     @pyqtSlot(int)
-    def _animate_fade(self, index):
-        if index < 0:
-            return  # Aucun onglet actif
-        widget = self.widget(index)
-        if widget is not None:
-            # Ne pas réanimer si déjà FadeWidget
-            if not isinstance(widget, FadeWidget):
-                FadeWidget.fade_in(widget, duration=self._duration, easing=self._easing)
+    def _on_tab_changed(self, index):
+        """Lance l’animation de fondu à chaque changement d’onglet."""
+        try:
+            widget = self.widget(index)
+            if isinstance(widget, FadeWidget):
+                widget.fade_in(duration=self._duration, easing=self._easing)
+        except Exception as e:
+            print(f"[FadeTabWidget] Erreur dans _on_tab_changed: {e}")

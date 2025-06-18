@@ -30,6 +30,10 @@ from .progress_dialog import ProgressDialog
 # --- Themeing ---
 from .theme import get_custom_palette, get_dark_palette
 
+from .graph_window import GraphWindow
+
+from .report_window import ReportWindow
+
 # --- Widgets (expose as needed, you can add more) ---
 # Example: from .widgets.animated_tool_button import AnimatedToolButton
 
@@ -52,5 +56,6 @@ __all__ = [
     "get_custom_palette",
     "get_dark_palette",
     "logger",
+    "GraphWindow"
     # Add widget classes here if you want to expose them globally
 ]
